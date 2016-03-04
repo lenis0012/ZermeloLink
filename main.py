@@ -14,8 +14,23 @@ end = int(time.mktime(end.timetuple()))
 
 # aquire schedule from zermelo
 access_token = zermelo_api.get_access_token()
-schedule = zermelo_api.get_schedule(access_token, user=None, cancelled=False, start=start, end=end, fields="subjects,teachers")
+schedule = zermelo_api.get_schedule(access_token, cancelled=False, start=start, end=end, fields="subjects,teachers")
 
 # create users
-user_token = moodle_api.base_url("http://kwcollege.zermelo.nl/")
-moodle_api.create_users(user_token, schedule['users'])
+moodle_api.base_url("http://google.com/")
+user_token = moodle_api.get_user_token('ws_user', '274!TzZ1XioI')['token']
+
+teachers_completed = [] # List of all teachers that have been processed (prevent duplicates)
+users = [] # List of all users to be created
+
+# Loop through all appointments
+for entry in schedule['response']['data']:
+    # Loop through all teachers
+    for teacher in entry['teachers']:
+        # Verify duplicate
+        if not teacher in teachers_completed:
+            # Add to dictionary
+            teachers_completed.append(teacher)
+            users.append(zermelo_api.get_user(access_token, teacher))
+
+moodle_api.create_users(user_token, users)

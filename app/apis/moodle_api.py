@@ -20,7 +20,7 @@ def base_url(url):
     moodle_base_url = url
 
 # Get the user's authentication token
-def get_user_token(user, password, service='moodle_mobile_app'):
+def get_user_token(user, password, service='zlink'):
     global moodle_base_url
     params = {
         'username': user,
@@ -29,13 +29,22 @@ def get_user_token(user, password, service='moodle_mobile_app'):
     }
 
     url = moodle_base_url + moodle_token_url + "?" + urllib.urlencode(params)
-    print url
     request = urllib2.urlopen(url) # Request token from moodle
     return json.load(request)
 
 # Create a set of users
 def create_users(user_token, users):
-    return execute_api_function(user_token, 'core_user_create_users', users)
+    params = ""
+    for i in range(len(users)):
+        user = users[i]
+        params += param(i, user, 'username')
+        params += param_a(i, 'createpassword', '1')
+        params += param(i, user, 'email')
+        params += param(i, user, 'firstname')
+        # params += param(i, user, 'middlename')
+        params += param(i, user, 'lastname')
+    params = params[:len(params)-1]
+    return execute_api_function(user_token, 'core_user_create_users', params)
 
 # Esecute an api method
 def execute_api_function(user_token, function_name, function_data):
@@ -50,3 +59,9 @@ def execute_api_function(user_token, function_name, function_data):
     request = urllib2.Request(url, function_data) # create POST request
     response = urllib2.urlopen(request) # call post request
     return json.load(response)
+
+def param(idx, data, key):
+    return param_a(idx, key, data[key])
+
+def param_a(idx, key, value):
+    return "users[{0}][{1}]={2}&".format(idx, key, value)

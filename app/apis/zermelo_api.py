@@ -9,6 +9,7 @@ import datetime
 zermelo_api_base_url = "https://kwcollege.zportal.nl/api/v3"
 zermelo_api_token = "/oauth/token"
 zermelo_api_appointment = "/appointments"
+zermelo_api_users = "/users"
 
 
 # Request access token from zermelo
@@ -43,18 +44,50 @@ def get_schedule(access_token, start=None, end=None, user='~me', fields=None, va
     }
 
     if start is not None:
-        params['start'] = start
+        params['start'] = start # Start date
     if end is not None:
-        params['end'] = end
+        params['end'] = end # End date
     if user is not None:
-        params['user'] = user
+        params['user'] = user # user code
     if fields is not None:
-        params['fields'] = fields
+        params['fields'] = fields # fields filter
 
     url = zermelo_api_base_url + zermelo_api_appointment + "?" + urllib.urlencode(params)
     request = urllib2.urlopen(url)
     return json.load(request)
 
+def get_user(access_token, code):
+    params = {
+        'code': code,
+        'access_token': access_token.get_token()
+    }
+
+    url = zermelo_api_base_url + zermelo_api_users + "?" + urllib.urlencode(params)
+    request = urllib2.urlopen(url)
+    response = json.load(request)['response']
+    data = response['data']
+
+    # test purposes
+    data = {
+        'email': 'abc@def.com',
+        'firstName': "First",
+        'lastName': 'Name',
+        'prefix': ''
+    }
+
+    email = data['email']
+    fname = data['firstName']
+    lname = data['lastName']
+    mname = data['prefix']
+    userobject = {
+        'username': code,
+        # 'createpassword': 1,
+        'firstname': fname,
+        'lastname': lname,
+        'email': email,
+        'middlename': mname
+    }
+    return userobject
 
 # Parse json schedule
 def parse_schedule(schedule):
