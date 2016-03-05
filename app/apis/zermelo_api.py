@@ -4,6 +4,7 @@ import urllib2
 import os.path
 import json
 import datetime
+import uuid
 
 # Static values
 zermelo_api_base_url = "https://kwcollege.zportal.nl/api/v3"
@@ -33,13 +34,13 @@ def get_access_token():
         json.dump(data, f)
     return _AccessToken(data)
 
+
 # Get schedule from zermelo
-def get_schedule(access_token, start=None, end=None, user='~me', fields=None, valid=True, cancelled=True, base=False, show_hidden=False):
+def get_schedule(access_token, start=None, end=None, user='~me', fields=None, valid=True, cancelled=True, base=False):
     params = {
         'valid': valid,
         'cancelled': cancelled,
         'base': base,
-        #'showHidden': show_hidden,
         'access_token': access_token.get_token()
     }
 
@@ -56,12 +57,16 @@ def get_schedule(access_token, start=None, end=None, user='~me', fields=None, va
     request = urllib2.urlopen(url)
     return json.load(request)
 
+
+# Get user data by code
 def get_user(access_token, code):
+    # Set parameters
     params = {
         'code': code,
         'access_token': access_token.get_token()
     }
 
+    # Request user data from zermelo
     url = zermelo_api_base_url + zermelo_api_users + "?" + urllib.urlencode(params)
     request = urllib2.urlopen(url)
     response = json.load(request)['response']
@@ -69,12 +74,14 @@ def get_user(access_token, code):
 
     # test purposes
     data = {
-        'email': 'abc@def.com',
-        'firstName': "First",
-        'lastName': 'Name',
+        'email': str(uuid.uuid4().get_hex().upper()[0:6]) + '@abcd.nl',
+        'firstName': code,
+        'lastName': 'Last',
         'prefix': ''
     }
 
+    # Parse data
+    data['code'] = code
     email = data['email']
     fname = data['firstName']
     lname = data['lastName']
@@ -87,11 +94,13 @@ def get_user(access_token, code):
         'email': email,
         'middlename': mname
     }
-    return userobject
+    return data
+
 
 # Parse json schedule
 def parse_schedule(schedule):
     return _Schedule(schedule)
+
 
 # Schedule data class
 class _Schedule(dict):
@@ -165,9 +174,7 @@ class _Appointment:
         return self._end
 
 
-'''
-
-'''
+# Container for access token
 class _AccessToken:
 
     def __init__(self, data):

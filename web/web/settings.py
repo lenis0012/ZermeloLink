@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+if 'ZLINK_MOODLE' not in os.environ:
+    os.environ['ZLINK_MOODLE'] = 'moodle'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -40,7 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'moodle'
+    os.environ['ZLINK_MOODLE']
 )
 
 MIDDLEWARE_CLASSES = (
